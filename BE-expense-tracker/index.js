@@ -140,7 +140,7 @@ app.put("/users/:id", async (req, res) => {
   const {name, email} = req.body;
   try {
     const result = await db.query(
-      "UPDATE users SET name = $1, email = $2, WHERE id = $3 RETURNING *", [name, email, id]
+      "UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *", [name, email, id]
     );
     if (result.rows.length === 0) {
       res.status(404).json({error: "Item not found"});
