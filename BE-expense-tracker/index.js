@@ -3,13 +3,22 @@ import bodyParser from "body-parser";
 import fs from "node:fs";
 import cors from "cors";
 import { db } from "./db.js";
-import { error } from "node:console";
+import { table } from "./src/router/table.js";
+import { users } from "./src/router/users.js";
+import { record } from "./src/router/record.js";
+import { category } from "./src/router/category.js";
 
 const app = express();
 const port = 8000;
 
 app.use(bodyParser.json());
 app.use(cors());
+app.use("/users",users)
+app.use("/records", record)
+app.use("/category", category)
+app.use("/table", table)
+
+
 
 app.get("/installExtention", async (req, res) => {
   const tableQueryText = `CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -28,44 +37,36 @@ try {
 });
 
 
-app.get("/users/createTable", async (req, res) => {
-  const tableQueryText = `
-  CREATE TABLE "users" (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    email VARCHAR(50) UNIQUE NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    password TEXT,
-    avatar_image TEXT,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    currency_type currency_type DEFAULT 'USD' NOT NULL
-  )`;
 
-  try {
-    await db.query(tableQueryText);
-  } catch (error) {
-    console.error(error);
-    res.send("Error creating table");
-  }
+
+
+
+
+// app.get("/users/createTable", async (req, res) => {
+//   const tableQueryText = `
+//   CREATE TABLE "users" (
+//     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+//     user_id TEXT,
+//     name VARCHAR(50) NOT NULL,
+//     amount TEXT,
+//     transaction_type transaction_type DEFAULT 'INC' NOT NULL,
+//     description TEXT,
+//     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//     category_id TEXT
+//   )`;
+
+//   try {
+//     await db.query(tableQueryText);
+//   } catch (error) {
+//     console.error(error);
+//     res.send("Error creating table");
+//   }
 
   
-});
+// });
 
-app.get("/users", async (req, res) => {
-  const queryText = `
-  SELECT * FROM users
-  `;
 
-  try {
-    const result = await db.query(queryText);
-    res.send(result.rows);
-  } catch (error) {
-    console.log(error);
-    
-  }
-
- 
-});
 
 
 // app.get("/", async (req, res) => {
@@ -87,28 +88,7 @@ app.get("/users", async (req, res) => {
 // });
 
 
-app.post("/users/create", async (req, res) => {
-  const { email, name, password, avatar_image, currency_type} =req.body;
-  
-  const QueryText = `
-  INSERT INTO users (email, name, password, avatar_image, currency_type)
-  VALUES ($1, $2, $3, $4, $5) RETURNING *`;
 
-  try {
-    const result = await db.query(QueryText,[
-      email,
-      name,
-      password,
-      avatar_image,
-      currency_type
-  ]);
-  } catch (err) {
-    console.error(err);
-    res.send("user inserted successfully!");
-  }
-
-  
-});
 
 
 
@@ -135,24 +115,6 @@ app.post("/users/create", async (req, res) => {
 
 //     })
 
-app.put("/users/:id", async (req, res) => {
-  const {id} = req.params;
-  const {name, email} = req.body;
-  try {
-    const result = await db.query(
-      "UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *", [name, email, id]
-    );
-    if (result.rows.length === 0) {
-      res.status(404).json({error: "Item not found"});
-
-    } else { res.status(200).json(result.rows[0]);
-
-    }
-  } catch (erro) {
-    console.error(erro);
-    res.status(500).json({error:"Database error"});
-  }
-});
 
 
 
